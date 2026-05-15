@@ -1,0 +1,13 @@
+GIMP Palette
+Name: Pikachu (#025)
+Columns: 6
+# Per-sprite minimal palette: yellow body, orange stripes/tail, black outline,
+# red cheek, white highlight, gray shading. One color per role; runtime
+# blending in the pokedex.nvim plugin softens these against the user's
+# terminal background.
+254 204   0	fecc00
+229 117  29	e5751d
+  0   0   0	000000
+232  56  40	e83828
+255 255 255	ffffff
+ 92  92  92	5c5c5c
