@@ -2,7 +2,7 @@
 
 Random Pokémon pixel art for your Neovim dashboard.
 
-<!-- Add a screenshot at https://github.com/drop-stones/pokedex.nvim/wiki and reference it here. -->
+![demo](https://raw.githubusercontent.com/drop-stones/pokedex.nvim/assets/screenshots/pokedex.png)
 
 ## ✨ Features
 
