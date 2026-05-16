@@ -26,6 +26,13 @@ format:
 format-check:
     @nix develop --command stylua --check {{main}}/lua
 
+# Run the plugin smoke tests in headless nvim.
+test:
+    @nvim --headless --noplugin -u NONE \
+        -c "set rtp+={{main}}" \
+        -c "luafile {{main}}/tests/smoke.lua" \
+        -c "qa"
+
 # Remove every generated .lua sprite data file from the main branch.
 clean:
     #!/usr/bin/env bash
