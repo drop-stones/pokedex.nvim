@@ -18,10 +18,7 @@ function M.check()
   if vim.fn.has("nvim-0.10") == 1 then
     vim.health.ok("Neovim 0.10+")
   else
-    vim.health.warn(
-      "Neovim 0.10+ recommended (older versions are untested)",
-      "Upgrade Neovim if rendering misbehaves."
-    )
+    vim.health.warn("Neovim 0.10+ recommended (older versions are untested)", "Upgrade Neovim if rendering misbehaves.")
   end
 
   if vim.o.termguicolors then

@@ -5,9 +5,7 @@ local LOWER = "\u{2584}"
 
 local function hex_to_rgb(hex)
   hex = hex:gsub("^#", "")
-  return tonumber(hex:sub(1, 2), 16),
-    tonumber(hex:sub(3, 4), 16),
-    tonumber(hex:sub(5, 6), 16)
+  return tonumber(hex:sub(1, 2), 16), tonumber(hex:sub(3, 4), 16), tonumber(hex:sub(5, 6), 16)
 end
 
 local function rgb_to_hex(r, g, b)
@@ -25,7 +23,9 @@ local function blend_one(fg_hex, bg_rgb, alpha)
 end
 
 local function decode_idx(ch)
-  if ch == "." or ch == "" then return 0 end
+  if ch == "." or ch == "" then
+    return 0
+  end
   return tonumber(ch, 36)
 end
 
@@ -45,9 +45,9 @@ local function blended_palette(sprite, alpha, bg_hex)
 end
 
 --- Render a sprite to a structured form usable by Neovim buffers.
----@param sprite table { width, height, palette, pixels }
+---@param sprite pokedex.Sprite
 ---@param opts? { alpha?: number, bg?: string }
----@return { lines: string[], highlights: table[] }
+---@return pokedex.Block
 function M.render(sprite, opts)
   opts = opts or {}
   local alpha = opts.alpha or 1.0
@@ -96,7 +96,7 @@ function M.render(sprite, opts)
 end
 
 --- Render a sprite as a single ANSI escape sequence string (for terminal use).
----@param sprite table
+---@param sprite pokedex.Sprite
 ---@param opts? { alpha?: number, bg?: string }
 ---@return string
 function M.to_ansi(sprite, opts)
@@ -110,7 +110,9 @@ function M.to_ansi(sprite, opts)
 
   for row, line in ipairs(rendered.lines) do
     local row_hls = hl_by_row[row - 1] or {}
-    table.sort(row_hls, function(a, b) return a.col < b.col end)
+    table.sort(row_hls, function(a, b)
+      return a.col < b.col
+    end)
     local cursor = 0
     local pieces = {}
     for _, hl in ipairs(row_hls) do

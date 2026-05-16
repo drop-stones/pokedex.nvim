@@ -1,3 +1,44 @@
+---@class pokedex.Highlight
+---@field row integer 0-indexed row within the block
+---@field col integer 0-indexed byte column where the highlight starts
+---@field end_col integer 0-indexed byte column where the highlight ends (exclusive)
+---@field fg? string hex color like "#fecc00" for foreground
+---@field bg? string hex color for background
+---@field hl? string named Neovim highlight group (alternative to fg/bg)
+
+---@class pokedex.Block
+---@field lines string[] one display row per entry, uniform display width
+---@field highlights pokedex.Highlight[]
+
+---@class pokedex.Sprite
+---@field width integer
+---@field height integer
+---@field palette string[] hex colors (no leading `#`), 1-indexed via the pixel chars
+---@field pixels string[] one row per entry; chars: `.`=transparent, `1`-`9`/`a`-`z`=palette index
+
+---@class pokedex.RenderResult: pokedex.Block
+---@field id string canonical "category/name" id of the rendered sprite
+
+---@class pokedex.SetupOpts
+---@field alpha? number blend factor 0..1 (default 1.0, no blend)
+---@field bg? string target bg hex; auto-detected from `Normal` if absent, falls back to `#000000`
+
+---@class pokedex.PickOpts
+---@field id? string canonical "category/name" id; if omitted, picks randomly within `category`
+---@field category? string sprite category (default `"all"` = pick across all categories)
+
+---@class pokedex.TextOpts
+---@field hl? string highlight group applied uniformly to every line
+
+---@class pokedex.SnacksSectionOpts: pokedex.PickOpts
+---Composition mode is active when `blocks` is present; otherwise the spec
+---wraps a single sprite chosen by `id`/`category`. Any keys not listed below
+---(e.g. `align`, `padding`, `pane`, `indent`) are forwarded onto the
+---returned snacks section spec as-is.
+---@field blocks? pokedex.Block[] composed left-to-right blocks
+---@field gap? integer spaces between composed blocks (default 2)
+---@field anchor? integer 1-indexed block to centre at screen-centre
+
 local M = {}
 
 local render = require("pokedex.render")
@@ -30,7 +71,9 @@ local function list_sprite_ids(category)
   local ids = {}
   for _, f in ipairs(files) do
     local id = f:match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua$")
-    if id then table.insert(ids, id) end
+    if id then
+      table.insert(ids, id)
+    end
   end
   table.sort(ids)
   return ids
@@ -45,7 +88,9 @@ local function load_sprite(id)
 end
 
 local function resolve_id(opts)
-  if opts.id then return opts.id end
+  if opts.id then
+    return opts.id
+  end
   local category = opts.category or "all"
   local ids = list_sprite_ids(category)
   if #ids == 0 then
@@ -55,16 +100,20 @@ local function resolve_id(opts)
 end
 
 --- Configure the plugin.
----@param opts? { alpha?: number, bg?: string }
+---@param opts? pokedex.SetupOpts
 function M.setup(opts)
   opts = opts or {}
-  if opts.alpha ~= nil then config.alpha = opts.alpha end
-  if opts.bg ~= nil then config.bg = opts.bg end
+  if opts.alpha ~= nil then
+    config.alpha = opts.alpha
+  end
+  if opts.bg ~= nil then
+    config.bg = opts.bg
+  end
 end
 
 --- Render a sprite to lines + highlights.
----@param opts? { id?: string, category?: string }
----@return { lines: string[], highlights: table[], id: string }
+---@param opts? pokedex.PickOpts
+---@return pokedex.RenderResult
 function M.render(opts)
   opts = opts or {}
   local id = resolve_id(opts)
@@ -75,7 +124,7 @@ function M.render(opts)
 end
 
 --- Render a sprite as an ANSI escape string (for :terminal or `cat`).
----@param opts? { id?: string, category?: string }
+---@param opts? pokedex.PickOpts
 ---@return string
 function M.to_ansi(opts)
   opts = opts or {}
@@ -87,8 +136,8 @@ end
 --- `{ lines, highlights }` shape as `render()`, so it can sit alongside
 --- sprite blocks inside `snacks_section({ blocks = { ... } })`.
 ---@param text string|string[]
----@param opts? { hl?: string }
----@return { lines: string[], highlights: table[] }
+---@param opts? pokedex.TextOpts
+---@return pokedex.Block
 function M.text(text, opts)
   opts = opts or {}
   local lines
@@ -126,6 +175,9 @@ end
 -- anchored block lands at the composed block's horizontal centre — when the
 -- consumer (snacks) centres the composed block on screen, the anchored block
 -- ends up centred on screen.
+---@param blocks pokedex.Block[]
+---@param opts? { gap?: integer, anchor?: integer }
+---@return pokedex.Block
 local function compose(blocks, opts)
   opts = opts or {}
   local gap = opts.gap or 2
@@ -186,7 +238,9 @@ local function compose(blocks, opts)
               row = r - 1,
               col = h.col + block_starts[i],
               end_col = h.end_col + block_starts[i],
-              fg = h.fg, bg = h.bg, hl = h.hl,
+              fg = h.fg,
+              bg = h.bg,
+              hl = h.hl,
             })
           end
         end
@@ -228,13 +282,17 @@ end
 local hl_cache = {}
 local function ensure_hl(fg, bg)
   local key = (fg or "_") .. "_" .. (bg or "_")
-  if hl_cache[key] then return hl_cache[key] end
+  if hl_cache[key] then
+    return hl_cache[key]
+  end
   local name = "PokedexSprite_" .. key:gsub("#", ""):gsub("_", "x")
   vim.api.nvim_set_hl(0, name, { fg = fg, bg = bg, default = false })
   hl_cache[key] = name
   return name
 end
 
+---@param data pokedex.Block
+---@return table[] snacks-style chunks: { { text, hl? = group }, ... }
 local function to_chunks(data)
   local lines = data.lines or {}
   local by_row = {}
@@ -243,7 +301,9 @@ local function to_chunks(data)
     table.insert(by_row[h.row], h)
   end
   for _, hls in pairs(by_row) do
-    table.sort(hls, function(a, b) return a.col < b.col end)
+    table.sort(hls, function(a, b)
+      return a.col < b.col
+    end)
   end
 
   local chunks = {}
@@ -278,7 +338,7 @@ end
 ---
 --- Any keys other than the above are forwarded verbatim onto the snacks
 --- section spec (e.g. `align`, `padding`, `pane`, `indent`).
----@param opts? table
+---@param opts? pokedex.SnacksSectionOpts
 ---@return table snacks section spec
 function M.snacks_section(opts)
   opts = opts or {}
