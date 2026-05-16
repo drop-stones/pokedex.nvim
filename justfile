@@ -3,9 +3,12 @@
 default:
     @just --choose
 
-# Convert every sprites/*/*.png to lua data files in the main branch (see scripts/build.sh for POKEDEX_MAIN_DIR override).
+# Path to the pokedex.nvim main worktree (POKEDEX_MAIN_DIR overrides).
+main := env_var_or_default("POKEDEX_MAIN_DIR", "../pokedex.nvim")
+
+# Convert every sprites/*/*.png to lua data files in the main branch.
 build:
-    @nix develop --command bash scripts/build.sh
+    @POKEDEX_MAIN_DIR={{main}} nix develop --command bash scripts/build.sh
 
 # Snap a single PNG to a GIMP palette (.gpl), overwriting the input.
 snap png palette:
@@ -15,11 +18,18 @@ snap png palette:
 list:
     @find sprites -type f -name '*.png' | sort
 
+# Format every Lua file in the main branch with stylua.
+format:
+    @nix develop --command stylua {{main}}/lua
+
+# Verify Lua formatting without modifying files.
+format-check:
+    @nix develop --command stylua --check {{main}}/lua
+
 # Remove every generated .lua sprite data file from the main branch.
 clean:
     #!/usr/bin/env bash
-    main_dir="${POKEDEX_MAIN_DIR:-../pokedex.nvim}"
-    target="$main_dir/lua/pokedex/sprites"
+    target="{{main}}/lua/pokedex/sprites"
     if [ -d "$target" ]; then
         find "$target" -type f -name '*.lua' -delete
         echo "removed *.lua under $target"
