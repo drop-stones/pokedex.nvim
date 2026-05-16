@@ -20,11 +20,11 @@ list:
 
 # Format every Lua file in the main branch with stylua.
 format:
-    @nix develop --command stylua {{main}}/lua
+    @nix develop --command stylua {{main}}/lua {{main}}/tests
 
 # Verify Lua formatting without modifying files.
 format-check:
-    @nix develop --command stylua --check {{main}}/lua
+    @nix develop --command stylua --check {{main}}/lua {{main}}/tests
 
 # Run the plugin smoke tests in headless nvim.
 test:
