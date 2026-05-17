@@ -76,6 +76,48 @@ check("render alpha=0.5 against white blends colors", function()
   end
 end)
 
+-- ---------- outline ----------
+
+local function has_color(highlights, hex)
+  for _, h in ipairs(highlights) do
+    if h.fg == hex or h.bg == hex then
+      return true
+    end
+  end
+  return false
+end
+
+check("setup outline as hex replaces black outline", function()
+  p.setup({ alpha = 1.0, bg = "#000000", outline = "#ff00ff" })
+  local r = p.render({ id = "pokeball/poke" })
+  assert(has_color(r.highlights, "#ff00ff"), "expected outline color to appear")
+  assert(not has_color(r.highlights, "#000000"), "expected original black outline to be gone")
+  p.setup({ outline = nil })
+end)
+
+check("setup outline as hl group resolves to fg", function()
+  vim.api.nvim_set_hl(0, "PokedexTestTitle", { fg = "#abcdef" })
+  p.setup({ alpha = 1.0, bg = "#000000", outline = "PokedexTestTitle" })
+  local r = p.render({ id = "pokeball/poke" })
+  assert(has_color(r.highlights, "#abcdef"), "expected hl group fg to be applied as outline")
+  p.setup({ outline = nil })
+end)
+
+check("render-time outline wins over setup outline", function()
+  p.setup({ alpha = 1.0, bg = "#000000", outline = "#ff0000" })
+  local r = p.render({ id = "pokeball/poke", outline = "#00ff00" })
+  assert(has_color(r.highlights, "#00ff00"), "expected per-call outline to win")
+  assert(not has_color(r.highlights, "#ff0000"), "setup outline should be overridden")
+  p.setup({ outline = nil })
+end)
+
+check("unresolvable outline hl group falls back to sprite default", function()
+  p.setup({ alpha = 1.0, bg = "#000000", outline = "NonExistentHlGroup_xyz" })
+  local r = p.render({ id = "pokeball/poke" })
+  assert(has_color(r.highlights, "#000000"), "expected sprite's original black outline as fallback")
+  p.setup({ outline = nil })
+end)
+
 -- ---------- text() ----------
 
 check("text(string) returns a block with one line per newline", function()

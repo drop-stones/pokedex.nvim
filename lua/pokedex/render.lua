@@ -29,11 +29,14 @@ local function decode_idx(ch)
   return tonumber(ch, 36)
 end
 
-local function blended_palette(sprite, alpha, bg_hex)
+local function blended_palette(sprite, alpha, bg_hex, outline)
   local out = {}
   if alpha >= 1.0 or not bg_hex then
     for i, c in ipairs(sprite.palette) do
       out[i] = "#" .. c
+    end
+    if outline then
+      out[1] = outline
     end
     return out
   end
@@ -41,20 +44,24 @@ local function blended_palette(sprite, alpha, bg_hex)
   for i, c in ipairs(sprite.palette) do
     out[i] = blend_one(c, { br, bg, bb }, alpha)
   end
+  if outline then
+    out[1] = blend_one(outline, { br, bg, bb }, alpha)
+  end
   return out
 end
 
 --- Render a sprite to a structured form usable by Neovim buffers.
 ---@param sprite pokedex.Sprite
----@param opts? { alpha?: number, bg?: string }
+---@param opts? { alpha?: number, bg?: string, outline?: string }
 ---@return pokedex.Block
 function M.render(sprite, opts)
   opts = opts or {}
   local alpha = opts.alpha or 1.0
   local bg = opts.bg
+  local outline = opts.outline
   assert(sprite.height % 2 == 0, "sprite height must be even")
 
-  local palette = blended_palette(sprite, alpha, bg)
+  local palette = blended_palette(sprite, alpha, bg, outline)
   local lines = {}
   local highlights = {}
 
@@ -97,7 +104,7 @@ end
 
 --- Render a sprite as a single ANSI escape sequence string (for terminal use).
 ---@param sprite pokedex.Sprite
----@param opts? { alpha?: number, bg?: string }
+---@param opts? { alpha?: number, bg?: string, outline?: string }
 ---@return string
 function M.to_ansi(sprite, opts)
   local rendered = M.render(sprite, opts)

@@ -22,10 +22,12 @@
 ---@class pokedex.SetupOpts
 ---@field alpha? number blend factor 0..1 (default 1.0, no blend)
 ---@field bg? string target bg hex; auto-detected from `Normal` if absent, falls back to `#000000`
+---@field outline? string override sprite outline (palette index 1). Hex (`"#fafafa"`) or hl group name (`"Title"`, resolved to fg)
 
 ---@class pokedex.PickOpts
 ---@field id? string canonical "category/name" id; if omitted, picks randomly within `category`
 ---@field category? string sprite category (default `"all"` = pick across all categories)
+---@field outline? string per-call outline override (same accepted forms as setup). Wins over the setup value
 
 ---@class pokedex.TextOpts
 ---@field hl? string highlight group applied uniformly to every line
@@ -46,6 +48,7 @@ local render = require("pokedex.render")
 local config = {
   alpha = 1.0,
   bg = nil,
+  outline = nil,
 }
 
 local function auto_detect_bg()
@@ -56,11 +59,29 @@ local function auto_detect_bg()
   return nil
 end
 
-local function effective_opts()
+-- Accept either a hex string ("#fafafa") or an hl group name ("Title").
+-- Returns a `#rrggbb` string, or nil if unresolvable.
+local function resolve_color(value)
+  if value == nil then
+    return nil
+  end
+  if type(value) == "string" and value:sub(1, 1) == "#" then
+    return value
+  end
+  local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = value, link = false })
+  if ok and hl and hl.fg then
+    return string.format("#%06x", hl.fg)
+  end
+  return nil
+end
+
+local function effective_opts(override)
+  override = override or {}
   -- Priority: explicit opts.bg > Normal hl bg > black fallback.
   return {
     alpha = config.alpha,
     bg = config.bg or auto_detect_bg() or "#000000",
+    outline = resolve_color(override.outline or config.outline),
   }
 end
 
@@ -109,6 +130,9 @@ function M.setup(opts)
   if opts.bg ~= nil then
     config.bg = opts.bg
   end
+  if opts.outline ~= nil then
+    config.outline = opts.outline
+  end
 end
 
 --- Render a sprite to lines + highlights.
@@ -118,7 +142,7 @@ function M.render(opts)
   opts = opts or {}
   local id = resolve_id(opts)
   local sprite = load_sprite(id)
-  local out = render.render(sprite, effective_opts())
+  local out = render.render(sprite, effective_opts(opts))
   out.id = id
   return out
 end
@@ -129,7 +153,7 @@ end
 function M.to_ansi(opts)
   opts = opts or {}
   local id = resolve_id(opts)
-  return render.to_ansi(load_sprite(id), effective_opts())
+  return render.to_ansi(load_sprite(id), effective_opts(opts))
 end
 
 --- Build a text block from a string (or string array). Returns the same
@@ -346,10 +370,10 @@ function M.snacks_section(opts)
   if opts.blocks ~= nil then
     data = compose(opts.blocks, { gap = opts.gap, anchor = opts.anchor })
   else
-    data = M.render({ id = opts.id, category = opts.category })
+    data = M.render({ id = opts.id, category = opts.category, outline = opts.outline })
   end
   local spec = vim.tbl_extend("force", {}, opts)
-  spec.id, spec.category = nil, nil
+  spec.id, spec.category, spec.outline = nil, nil, nil
   spec.blocks, spec.gap, spec.anchor = nil, nil, nil
   spec.text = to_chunks(data)
   return spec
