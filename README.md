@@ -33,10 +33,11 @@ Random Pokémon pixel art for your Neovim dashboard.
 
 ## ⚙️ Configuration
 
-| Key     | Type      | Default | Description                                                                   |
-| ------- | --------- | ------- | ----------------------------------------------------------------------------- |
-| `alpha` | `number`  | `1.0`   | Blend factor against `bg` (`0` ≈ invisible, `1` = pure palette color)         |
-| `bg`    | `string?` | auto    | Hex bg used for blending. Defaults to `Normal` hl bg; falls back to `#000000` |
+| Key       | Type      | Default | Description                                                                                  |
+| --------- | --------- | ------- | -------------------------------------------------------------------------------------------- |
+| `alpha`   | `number`  | `1.0`   | Blend factor against `bg` (`0` ≈ invisible, `1` = pure palette color)                        |
+| `bg`      | `string?` | auto    | Hex bg used for blending. Defaults to `Normal` hl bg; falls back to `#000000`                |
+| `outline` | `string?` | `nil`   | Override sprite outlines (defaults to `#000000`). Hex (`"#fafafa"`) or hl group (`"Title"`)  |
 
 ## 🐾 Usage
 
