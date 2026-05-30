@@ -4,7 +4,7 @@ local function inventory()
   local files = vim.api.nvim_get_runtime_file("lua/pokedex/sprites/*/*.lua", true)
   local by_cat = {}
   for _, f in ipairs(files) do
-    local cat = f:match("lua/pokedex/sprites/([^/]+)/")
+    local cat = vim.fs.normalize(f):match("lua/pokedex/sprites/([^/]+)/")
     if cat then
       by_cat[cat] = (by_cat[cat] or 0) + 1
     end
@@ -55,7 +55,7 @@ function M.check()
   table.sort(parts)
   vim.health.ok(string.format("Sprites loaded — %d total (%s)", #files, table.concat(parts, ", ")))
 
-  local sample_id = files[1]:match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua")
+  local sample_id = vim.fs.normalize(files[1]):match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua")
   if sample_id then
     local rok, rerr = pcall(function()
       return require("pokedex").render({ id = sample_id })
