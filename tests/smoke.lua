@@ -178,7 +178,7 @@ check("every installed sprite can be loaded without error", function()
   local files = vim.api.nvim_get_runtime_file("lua/pokedex/sprites/*/*.lua", true)
   assert(#files > 0, "no sprites found")
   for _, path in ipairs(files) do
-    local id = path:match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua$")
+    local id = vim.fs.normalize(path):match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua$")
     if id then
       local r = p.render({ id = id })
       assert(r.id == id)
