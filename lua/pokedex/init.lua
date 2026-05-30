@@ -91,7 +91,7 @@ local function list_sprite_ids(category)
   local files = vim.api.nvim_get_runtime_file(pattern, true)
   local ids = {}
   for _, f in ipairs(files) do
-    local id = f:match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua$")
+    local id = vim.fs.normalize(f):match("lua/pokedex/sprites/([^/]+/[^/]+)%.lua$")
     if id then
       table.insert(ids, id)
     end
