@@ -23,6 +23,8 @@ jobs:
       - uses: kdheepak/panvimdoc@main
         with:
           vimdoc: pokedex
+          version: "NVIM v0.10.0"
+          description: "Random Pokémon pixel art for your Neovim dashboard"
 
       - uses: stefanzweifel/git-auto-commit-action@v7
         with:
