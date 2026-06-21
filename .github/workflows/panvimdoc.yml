@@ -16,6 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # pandoc does not create the output directory, so ensure doc/ exists.
+      - name: Ensure doc/ exists
+        run: mkdir -p doc
+
       - uses: kdheepak/panvimdoc@main
         with:
           vimdoc: pokedex
