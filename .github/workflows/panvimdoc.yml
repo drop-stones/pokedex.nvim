@@ -1,0 +1,25 @@
+name: panvimdoc
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  panvimdoc:
+    name: pandoc to vimdoc
+    runs-on: ubuntu-latest
+    # Skip the redundant run triggered by this job's own auto-commit push.
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: kdheepak/panvimdoc@main
+        with:
+          vimdoc: pokedex
+
+      - uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "docs(vimdoc): auto-generate help"
