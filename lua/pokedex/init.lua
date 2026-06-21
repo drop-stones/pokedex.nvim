@@ -108,16 +108,28 @@ local function load_sprite(id)
   return dofile(path)
 end
 
+-- snacks re-renders the dashboard whenever an async section resolves (e.g. the
+-- plugin-update check), which re-evaluates section functions. Picking randomly
+-- on every call would therefore swap the sprite mid-view. Memoise the random
+-- choice per category for the lifetime of the Neovim session so a session keeps
+-- a single, stable sprite; an explicit `id` always bypasses the cache.
+local pick_cache = {}
+
 local function resolve_id(opts)
   if opts.id then
     return opts.id
   end
   local category = opts.category or "all"
+  if pick_cache[category] then
+    return pick_cache[category]
+  end
   local ids = list_sprite_ids(category)
   if #ids == 0 then
     error(string.format("pokedex: no sprites in category: %s", category))
   end
-  return ids[math.random(#ids)]
+  local id = ids[math.random(#ids)]
+  pick_cache[category] = id
+  return id
 end
 
 --- Configure the plugin.
