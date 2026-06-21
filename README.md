@@ -95,7 +95,7 @@ p.snacks_section({
 | `text(text, opts?)`    | `{ lines, highlights }`       | Build a text block usable inside `snacks_section({ blocks = … })`        |
 | `snacks_section(opts)` | snacks `dashboard.Item`       | Wrap a sprite or `blocks` composition; extra keys forward onto the spec  |
 
-`opts.id` is `"category/name"` (e.g. `"pokemon/025"`); `opts.category` scopes the random pick (default `"all"`). On `snacks_section`, the composition mode (`blocks` array) supports `gap` and `anchor` (1-indexed block to centre on screen).
+`opts.id` is `"category/name"` (e.g. `"pokemon/025"`); `opts.category` scopes the random pick (default `"all"`). The random pick is chosen once per Neovim session and then stays fixed, so dashboard re-renders (e.g. when snacks resolves an async section) don't swap the sprite — restart Neovim to roll a new one. On `snacks_section`, the composition mode (`blocks` array) supports `gap` and `anchor` (1-indexed block to centre on screen).
 
 ## 🎨 Available sprites
 
