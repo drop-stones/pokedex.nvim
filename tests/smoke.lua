@@ -41,12 +41,19 @@ check("render({category=...}) stays within the category", function()
   end
 end)
 
-check("render() (default category=all) eventually mixes categories", function()
-  local seen = {}
-  for _ = 1, 200 do
-    seen[p.render().id:match("^[^/]+/")] = true
+check("render() memoises its random pick for the session", function()
+  -- A dashboard re-render (snacks resolving an async section) must not swap
+  -- the sprite: repeated random picks within a session return the same id.
+  local first = p.render().id
+  for _ = 1, 25 do
+    assert(p.render().id == first, "random pick should be stable within a session")
   end
-  assert(seen["pokemon/"] and seen["pokeball/"], "expected both categories to appear")
+end)
+
+check("render() caches per category independently", function()
+  local pokeball = p.render({ category = "pokeball" }).id
+  assert(pokeball:sub(1, 9) == "pokeball/")
+  assert(p.render({ category = "pokeball" }).id == pokeball, "category pick should be stable too")
 end)
 
 check("to_ansi() embeds ANSI SGR sequences", function()
